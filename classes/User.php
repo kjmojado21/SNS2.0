@@ -15,6 +15,8 @@ class User extends Connection
             if ($secondQueryResult == FALSE) {
                 echo "second query failed";
             } else {
+                $userLoginID = $this->conn->insert_id;
+                $thirdResult = $this->conn->query("INSERT INTO followed_users(user_id,followed_user_id)VALUES('$userLoginID','$userLoginID')");
                 header('location:login.php');
             }
         } else {
@@ -29,14 +31,14 @@ class User extends Connection
         if ($result->num_rows == 1) {
             $row = $result->fetch_assoc();
             $_SESSION['login_id'] = $row['login_id'];
-            header('location:profile.php');
+            header('location:homepage.php');
         } else {
             echo "<div class = 'alert alert-danger'>User doesnt exist!</div>";
         }
     }
     public function getOneUser($id)
     {
-        $sql = "SELECT * FROM users_tbl WHERE user_id='$id'";
+        $sql = "SELECT * FROM users_tbl INNER JOIN login_tbl ON users_tbl.login_id = login_tbl.login_id WHERE users_tbl.user_id = '$id'";
         $result = $this->conn->query($sql);
         if ($result == FALSE) {
             die($this->conn->error);
@@ -117,7 +119,7 @@ class User extends Connection
         if ($result == FALSE) {
             die($this->conn->error);
         } else {
-            header('location:profile.php');
+            header('location:homepage.php');
         }
     }
 
@@ -133,10 +135,27 @@ class User extends Connection
             die($this->conn->error);
         } else {
             move_uploaded_file($_FILES['post_image']['tmp_name'], $targetDir);
-            header('location:profile.php');
+            header('location:homepage.php');
         }
-    }
+    } 
+    
+	
     // user settings
+    // function time2string($timeline) {
+    //     $periods = array('hour' => 3600, 'minute' => 60, 'second' => 1);
+    //     $ret = 0;
+    
+    //     foreach($periods AS $name => $seconds){
+    //         $num = floor($timeline / $seconds);
+    //         $timeline -= ($num * $seconds);
+    //         $ret .= $num.' '.$name.(($num > 1) ? 's' : '').' ';
+    //     }
+    
+    //     return trim($ret);
+    // }
+    
+        
+
     public function getAllPost()
     {
         $sql = "SELECT *  FROM posts_tbl";
@@ -155,16 +174,18 @@ class User extends Connection
     public function getFollowedUserPosts($id)
     {
         $sql = "SELECT * FROM posts_tbl INNER JOIN followed_users ON posts_tbl.user_id = followed_users.followed_user_id
-        INNER JOIN users_tbl ON posts_tbl.user_id = users_tbl.user_id WHERE followed_users.user_id = '$id'
+        INNER JOIN users_tbl ON posts_tbl.user_id = users_tbl.user_id
+        INNER JOIN login_tbl ON users_tbl.login_id = login_tbl.login_id
+        WHERE followed_users.user_id = '$id'
          ORDER BY posts_tbl.post_id DESC";
         $result = $this->conn->query($sql);
-        if($result->num_rows>0){
+        if ($result->num_rows > 0) {
             $row = array();
-            while($rows = $result->fetch_assoc()){
+            while ($rows = $result->fetch_assoc()) {
                 $row[] = $rows;
             }
             return $row;
-        }else{
+        } else {
             return FALSE;
         }
     }
@@ -199,6 +220,7 @@ class User extends Connection
             return FALSE;
         }
     }
+    
 
 
 
@@ -214,26 +236,41 @@ class User extends Connection
             header('location:searchedResult.php');
         }
     }
-    public function validateUserRelationship($userid,$randomUserID){
+    public function validateUserRelationship($userid, $randomUserID)
+    {
         $sql = "SELECT * FROM followed_users WHERE user_id = '$userid' AND followed_user_id = '$randomUserID'";
         $result = $this->conn->query($sql);
 
-        if($result->num_rows==1){
+        if ($result->num_rows == 1) {
             return "unfollow";
-        }else{
+        } else {
             return "follow";
         }
     }
-    public function unfollow($id,$randomUserID){
+    public function unfollow($id, $randomUserID)
+    {
         $sql = "DELETE FROM followed_users WHERE user_id = '$id' AND followed_user_id = '$randomUserID'";
         $result = $this->conn->query($sql);
 
-        if($result == FALSE){
+        if ($result == FALSE) {
             die($this->conn->error);
-        }else{
+        } else {
             header('location:searchedResult.php');
         }
-
     }
+    public function countFollowing($id){
+        $sql = "SELECT * FROM followed_users";
+        $result = $this->conn->query($sql);
+
+        if($result->num_rows>0){
+            return $result->num_rows;
+        }else{
+            return 0;
+        }
+        
+        
+    }
+
     
 }
+
