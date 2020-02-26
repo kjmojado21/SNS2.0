@@ -5,6 +5,7 @@ $currentUser = $UserClass->getOneUser($currentUserID);
 $followedPosts = $UserClass->getFollowedUserPosts($currentUserID);
 $currentUserPosts = $UserClass->getUserPosts($currentUserID);
 $followingCount = $UserClass->countFollowing($_SESSION['login_id']);
+$followersCount = $UserClass->countFollowers($currentUserID);
 
 ?>
 <!doctype html>
@@ -28,11 +29,11 @@ $followingCount = $UserClass->countFollowing($_SESSION['login_id']);
 
     <nav class="navbar navbar-light bg-white">
         <a href="#" class="navbar-brand">SNS2.0</a>
-        <form class="form-inline">
+        <form method="POST" action="userAction.php" class="form-inline">
             <div class="input-group">
-                <input type="text" class="form-control" aria-label="Recipient's username" aria-describedby="button-addon2">
+                <input type="text" class="form-control" name="searched_user" placeholder="Search" aria-label="Recipient's username" aria-describedby="button-addon2">
                 <div class="input-group-append">
-                    <button class="btn btn-outline-primary" type="button" id="button-addon2">
+                    <button class="btn btn-outline-primary" type="submit" name="search" id="button-addon2">
                         <i class="fa fa-search"></i>
                     </button>
                 </div>
@@ -55,13 +56,15 @@ $followingCount = $UserClass->countFollowing($_SESSION['login_id']);
                     <ul class="list-group list-group-flush">
                         <li class="list-group-item">
                             <div class="h6 text-muted">Followers</div>
-                            <div class="h5">5.2342</div>
+                            <div class="h5"><?php echo $followersCount   ?></div>
                         </li>
                         <li class="list-group-item">
                             <div class="h6 text-muted">Following</div>
                             <div class="h5"><?php echo $followingCount ?></div>
                         </li>
-                        <li class="list-group-item">Vestibulum at eros</li>
+                        <li class="list-group-item">
+                        <a href="logout.php" class="btn btn-outline-secondary btn-block" role="button">Logout</a>
+                        </li>
                     </ul>
                 </div>
             </div>
@@ -153,7 +156,18 @@ $followingCount = $UserClass->countFollowing($_SESSION['login_id']);
                                                 <div class="h6 dropdown-header">Configuration</div>
                                                 <a class="dropdown-item" href="#">Save</a>
                                                 <a class="dropdown-item" href="#">Hide</a>
-                                                <a class="dropdown-item" href="#">Report</a>
+                                                <?php 
+                                                    if($row['user_id']!=$_SESSION['login_id']){    
+                                                       ?>
+                                                       <a class="dropdown-item" href="#">Report</a>
+                                                    <?php
+                                                    }else{
+                                                 ?>
+                                                    <a class="dropdown-item" href="#">Delete</a>
+                                                <?php
+                                                    }
+                                                ?>
+                                               
                                             </div>
                                         </div>
                                     </div>
@@ -161,7 +175,13 @@ $followingCount = $UserClass->countFollowing($_SESSION['login_id']);
 
                             </div>
                             <div class="card-body">
-                                <div class="text-muted h7 mb-2"> <i class="fa fa-clock-o"></i> Hace 40 min</div>
+                                <div class="text-muted h7 mb-2"> <i class="fa fa-clock-o"></i><?php 
+                               $postID = $row['post_id'];
+                               $time = $UserClass->getPostTime($postID);
+                              echo $time." ago";
+                               ?>
+                              
+                               </div>
                                 <a class="card-link" href="#">
                                     <h5 class="card-title"><?php 
                                         if(!is_null($row['post_content'])){
@@ -172,13 +192,30 @@ $followingCount = $UserClass->countFollowing($_SESSION['login_id']);
                                 </a>
 
                                 <p class="card-text">
-                                    <img src="postImages/<?php echo $row['post_image'] ?>" class="img-fluid" alt="">
+                                    <img src="postImages/<?php echo $row['post_image'] ?>" class="img-fluid" width="100%" alt="">
                                 </p>
                             </div>
                             <div class="card-footer">
                                 <a href="#" class="card-link"><i class="fa fa-gittip"></i> Like</a>
-                                <a href="#" class="card-link"><i class="fa fa-comment"></i> Comment</a>
+
+
+                                <a href="#contentId_<?php echo $row['post_id'] ?>" class="card-link" type="button" data-toggle="collapse" data-target="#contentId_<?php echo $row['post_id'] ?>" aria-expanded="false" aria-controls="contentId"><i class="fa fa-comment"></i> Comments</a>
+            
                                 <a href="#" class="card-link"><i class="fa fa-mail-forward"></i> Share</a>
+
+                                <!-- comment collapse -->
+                                <div class="collapse mt-3" id="contentId_<?php echo $row['post_id'] ?>">
+                                   <form action="userAction.php" method="post" class="form-inline">
+                                       <div class="input-group w-100">
+                                           <input type="hidden" name="post_id" value="<?php echo $row['post_id'] ?>">
+                                           <input type="hidden" name="user_id" value="<?php echo $_SESSION['login_id'] ?>">
+                                            <input type="text" name="comment" placeholder="Comment" class="form-control">
+                                            <div class="input-group-append">
+                                                <button type="submit" name="addComment" class="btn btn-primary"><i class="fas fa-comment-medical"></i></button>
+                                            </div>
+                                       </div>
+                                   </form>
+                                </div>
                             </div>
                         </div>
 
@@ -210,7 +247,17 @@ $followingCount = $UserClass->countFollowing($_SESSION['login_id']);
                                                 <div class="h6 dropdown-header">Configuration</div>
                                                 <a class="dropdown-item" href="#">Save</a>
                                                 <a class="dropdown-item" href="#">Hide</a>
-                                                <a class="dropdown-item" href="#">Report</a>
+                                                <?php 
+                                                    if($row['user_id']!=$_SESSION['login_id']){    
+                                                       ?>
+                                                       <a class="dropdown-item" href="#">Report</a>
+                                                    <?php
+                                                    }else{
+                                                 ?>
+                                                    <a class="dropdown-item" href="#">Delete</a>
+                                                <?php
+                                                    }
+                                                ?>
                                             </div>
                                         </div>
                                     </div>
@@ -218,7 +265,14 @@ $followingCount = $UserClass->countFollowing($_SESSION['login_id']);
 
                             </div>
                             <div class="card-body">
-                                <div class="text-muted h7 mb-2"> <i class="fa fa-clock-o"></i> Hace 40 min</div>
+                            <div class="text-muted h7 mb-2"> <i class="fa fa-clock-o"></i> 
+                            <?php 
+                               $postID = $row['post_id'];
+                               $time = $UserClass->getPostTime($postID);
+                              echo $time." ago";
+                               ?>
+                              
+                               </div>
                                 <a class="card-link" href="#">
                                     <h5 class="card-title"><?php
                                     echo $row['post_content']
@@ -231,8 +285,22 @@ $followingCount = $UserClass->countFollowing($_SESSION['login_id']);
                             </div>
                             <div class="card-footer">
                                 <a href="#" class="card-link"><i class="fa fa-gittip"></i> Like</a>
-                                <a href="#" class="card-link"><i class="fa fa-comment"></i> Comment</a>
+                                <a href="#contentId" class="card-link" type="button" data-toggle="collapse" data-target="#contentId_<?php echo $row['post_id']?>" aria-expanded="false" aria-controls="contentId"><i class="fa fa-comment"></i> Comments</a>
                                 <a href="#" class="card-link"><i class="fa fa-mail-forward"></i> Share</a>
+                               
+                                <!-- comment collapse -->
+                                <div class="collapse mt-3" id="contentId_<?php echo $row['post_id'] ?>">
+                                   <form action="userAction.php" method="post" class="form-inline">
+                                       <div class="input-group w-100">
+                                           <input type="hidden" name="post_id" value="<?php echo $row['post_id'] ?>">
+                                           <input type="hidden" name="user_id" value="<?php echo $_SESSION['login_id'] ?>">
+                                            <input type="text" name="comment" placeholder="Comment" class="form-control">
+                                            <div class="input-group-append">
+                                                <button type="submit" name="addComment" class="btn btn-primary"><i class="fas fa-comment-medical"></i></button>
+                                            </div>
+                                       </div>
+                                   </form>
+                                </div>
                             </div>
                         </div>
 

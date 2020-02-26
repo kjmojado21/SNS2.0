@@ -111,6 +111,53 @@ class User extends Connection
 
     // posts methods
     // method for adding posts
+    public function getPostTime($postID)
+    {
+        $sql = "SELECT DATE_FORMAT(time_posted,'%H:%i:%s') AS timeOnly FROM posts_tbl WHERE post_id = '$postID'";
+        $result = $this->conn->query($sql);
+        if ($result == FALSE) {
+            die($this->conn->error);
+        } else {
+            $row = $result->fetch_assoc();
+            $calculated_time = $this->calculatePostTime($row['timeOnly'],time());
+
+            return $this->time_since($calculated_time);
+        }
+    }
+
+    function time_since($since)
+    {
+        $chunks = array(
+            array(60 * 60 * 24 * 365, 'year'),
+            array(60 * 60 * 24 * 30, 'month'),
+            array(60 * 60 * 24 * 7, 'week'),
+            array(60 * 60 * 24, 'day'),
+            array(60 * 60, 'hour'),
+            array(60, 'minute'),
+            array(1, 'second')
+        );
+
+        for ($i = 0, $j = count($chunks); $i < $j; $i++) {
+            $seconds = $chunks[$i][0];
+            $name = $chunks[$i][1];
+            if (($count = floor($since / $seconds)) != 0) {
+                break;
+            }
+        }
+
+        $print = ($count == 1) ? '1 ' . $name : "$count {$name}s";
+        return $print;
+    }
+
+    public function calculatePostTime($post_time,$current_time)
+    {
+
+        $post_time = strtotime($post_time);
+
+
+        return  $post_time = $current_time - $post_time;
+    }
+
     public function addPost($id, $content)
     {
         $sql = "INSERT INTO posts_tbl(user_id,post_content)VALUES('$id','$content')";
@@ -122,6 +169,7 @@ class User extends Connection
             header('location:homepage.php');
         }
     }
+
 
     // adding posts with image
     public function addPostWithImage($id, $content, $img)
@@ -137,24 +185,9 @@ class User extends Connection
             move_uploaded_file($_FILES['post_image']['tmp_name'], $targetDir);
             header('location:homepage.php');
         }
-    } 
-    
-	
-    // user settings
-    // function time2string($timeline) {
-    //     $periods = array('hour' => 3600, 'minute' => 60, 'second' => 1);
-    //     $ret = 0;
-    
-    //     foreach($periods AS $name => $seconds){
-    //         $num = floor($timeline / $seconds);
-    //         $timeline -= ($num * $seconds);
-    //         $ret .= $num.' '.$name.(($num > 1) ? 's' : '').' ';
-    //     }
-    
-    //     return trim($ret);
-    // }
-    
-        
+    }
+
+
 
     public function getAllPost()
     {
@@ -220,7 +253,7 @@ class User extends Connection
             return FALSE;
         }
     }
-    
+
 
 
 
@@ -258,19 +291,38 @@ class User extends Connection
             header('location:searchedResult.php');
         }
     }
-    public function countFollowing($id){
+    public function countFollowing($id)
+    {
         $sql = "SELECT * FROM followed_users";
         $result = $this->conn->query($sql);
 
-        if($result->num_rows>0){
+        if ($result->num_rows > 0) {
             return $result->num_rows;
-        }else{
+        } else {
             return 0;
         }
-        
-        
+    }
+    public function countFollowers($session)
+    {
+        $sql = "SELECT * FROM followed_users WHERE followed_user_id = '$session'";
+        $result = $this->conn->query($sql);
+
+        if ($result->num_rows > 0) {
+            return $result->num_rows;
+        } else {
+            return 0;
+        }
     }
 
-    
-}
 
+    // add comments
+    public function simpleComment($userid, $postID, $comment)
+    {
+        $result = $this->conn->query("INSERT INTO comments_tbl(user_id,post_id,comment)VALUES('$userid','$postID','$comment')");
+        if ($result == FALSE) {
+            die($this->conn->error);
+        } else {
+            header('location:homepage.php');
+        }
+    }
+}

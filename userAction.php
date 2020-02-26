@@ -81,7 +81,52 @@ elseif(isset($_POST['search'])){
     $userID = $_POST['user_id'];
 
     $UserClass->unfollow($userID,$followedID);
+}elseif(isset($_POST['addComment'])){
+    $postID = $_POST['post_id'];
+    $userID = $_POST['user_id'];
+    $comment =$_POST['comment'];
+
+    $UserClass->simpleComment($userID,$postID,$comment);
 }
 
 // $time = time()-strtotime('2020-02-12 12:16:05');
+
+?>
+<?php
+// date_default_timezone_set("Asia/Manila");
+// // $current_time = date("h:i:s");
+// $postTime= strtotime('12:31:23');
+
+
+// $current_time_str = time();
+
+
+// $post_time = $current_time_str - $postTime;
+
+// function time_since($since) {
+//     $chunks = array(
+//         array(60 * 60 * 24 * 365 , 'year'),
+//         array(60 * 60 * 24 * 30 , 'month'),
+//         array(60 * 60 * 24 * 7, 'week'),
+//         array(60 * 60 * 24 , 'day'),
+//         array(60 * 60 , 'hour'),
+//         array(60 , 'minute'),
+//         array(1 , 'second')
+//     );
+
+//     for ($i = 0, $j = count($chunks); $i < $j; $i++) {
+//         $seconds = $chunks[$i][0];
+//         $name = $chunks[$i][1];
+//         if (($count = floor($since / $seconds)) != 0) {
+//             break;
+//         }
+//     }
+
+//     $print = ($count == 1) ? '1 '.$name : "$count {$name}s";
+//     return $print;
+// }
+
+// echo time_since($post_time)." Ago";
+?>
+
 
